@@ -27,6 +27,7 @@ A web scraping project developed with Scrapy to extract articles and content fro
 │       └── __init__.py
 ├── assets/                       # Project resources
 │   └── flow.png                  # Process flow diagram
+├── .env.example                  # Environment variables template
 ├── config.py                     # Additional configurations
 ├── data/                         # Data directory
 │   ├── processed/                # Processed data
@@ -53,6 +54,7 @@ A web scraping project developed with Scrapy to extract articles and content fro
 - **Ruff**: Code linter and formatter
 - **HTTPX**: Modern HTTP client for Python
 - **Asyncio**: Asynchronous I/O framework
+- **DeepSeek**: LLM for content analysis and summarization
 
 ## 📋 Prerequisites
 
@@ -78,6 +80,10 @@ source .venv/bin/activate  # On Linux/Mac
 
 # Install dependencies with uv
 uv sync
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env file with your configuration values
 ```
 
 ### Using pip
