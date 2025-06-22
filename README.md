@@ -188,9 +188,9 @@ scrapy crawl freshproduce \
   -O my_custom_file.json
 ```
 
-## 🔄 Workflow
+## 🔄 Simplified Workflow
 
-<img src="../../assets/flow.png" alt="Flow Diagram" width="500" />
+<img src="assets/flow.png" alt="Flow Diagram" width="500" />
 
 The scraping and analysis process follows a clearly defined three-phase workflow:
 
