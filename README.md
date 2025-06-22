@@ -30,13 +30,17 @@ A web scraping project developed with Scrapy to extract articles and content fro
 ├── config.py                     # Additional configurations
 ├── data/                         # Data directory
 │   ├── processed/                # Processed data
-│   │   └── scraped_data.csv      # Final data in CSV format
+│   │   ├── scraped_data.csv      # Complete articles with content
+│   │   └── analysis_summary.csv  # LLM analysis results
 │   └── raw/                      # Raw data
-│       └── freshproduce.json     # Extracted metadata
+│       └── freshproduce.json     # Metadata from API
 ├── pyproject.toml                # Project configuration
 ├── README.md                     # This file
 ├── requirements.txt              # Pip dependencies
-├── run.sh                        # Main execution script
+├── run.sh                        # Main execution script (runs all processes)
+├── run_llm.py                    # Script for analyzing data with LLM
+├── run_server.py                 # Script to start Streamlit server for data visualization
+├── run_spiders.py                # Script to execute spiders for data extraction
 ├── scrapy.cfg                    # Scrapy configuration
 └── uv.lock                       # uv lock file
 ```
@@ -47,6 +51,8 @@ A web scraping project developed with Scrapy to extract articles and content fro
 - **Scrapy**: Web scraping framework
 - **uv**: Modern and fast Python package manager
 - **Ruff**: Code linter and formatter
+- **HTTPX**: Modern HTTP client for Python
+- **Asyncio**: Asynchronous I/O framework
 
 ## 📋 Prerequisites
 
@@ -72,8 +78,6 @@ source .venv/bin/activate  # On Linux/Mac
 
 # Install dependencies with uv
 uv sync
-# or
-uv pip freeze > requirements.txt
 ```
 
 ### Using pip
@@ -85,21 +89,58 @@ pip install -r requirements.txt
 
 ## 🚀 Usage
 
-### Automatic Execution
+The project includes multiple execution options for different workflow needs:
 
-The project includes a shell script that runs both spiders sequentially:
+### Complete Workflow (Recommended)
+
+Execute the entire pipeline with a single command:
 
 ```bash
-# Give execution permissions to the script
+# Give execution permissions
 chmod +x run.sh
 
-# Run the complete scraping process
+# Run the complete workflow: scraping → analysis → server
 ./run.sh
+```
+
+This script runs all three phases sequentially:
+1. **Data Extraction**: Executes `run_spiders.py` to scrape articles
+2. **Data Analysis**: Runs `run_llm.py` to analyze data with LLM
+3. **Data Visualization**: Starts `run_server.py` for Streamlit dashboard
+
+### Individual Components
+
+You can also run each component separately:
+
+#### 1. Data Extraction Only
+
+Extract articles and content from Fresh Produce:
+
+```bash
+python run_spiders.py
 ```
 
 This script:
 1. **Phase 1**: Runs the `freshproduce` spider to extract metadata
 2. **Phase 2**: Runs the `articles` spider to extract complete content
+
+#### 2. Data Analysis Only
+
+Analyze the extracted data using LLM:
+
+```bash
+python run_llm.py
+```
+
+#### 3. Data Visualization Only
+
+Start a Streamlit server to visualize the analyzed data:
+
+```bash
+python run_server.py
+```
+
+The server will be available at `http://localhost:8501` (default Streamlit port).
 
 ### Manual Execution
 
@@ -145,7 +186,7 @@ scrapy crawl freshproduce \
 
 <img src="../../assets/flow.png" alt="Flow Diagram" width="500" />
 
-The scraping process follows a clearly defined two-phase workflow:
+The scraping and analysis process follows a clearly defined three-phase workflow:
 
 1. **FreshProduce Spider**: 
    - Queries the Fresh Produce search API
@@ -160,20 +201,60 @@ The scraping process follows a clearly defined two-phase workflow:
    - Combines metadata with content
    - Saves final result to `data/processed/scraped_data.csv`
 
+3. **LLM Analysis**:
+   - Processes the complete article data
+   - Generates summaries and extracts key topics using LLM
+   - Creates analysis results in `data/processed/analysis_summary.csv`
+
 ## 📊 Data Format
 
-### Output Data (Final CSV)
+### 1. Raw Metadata (freshproduce.json)
+
+```json
+[
+  {
+    "url": "https://www.freshproduce.com/...",
+    "title": "Article Title",
+    "description": "Brief description",
+    "categories": ["Food Safety", "Technology"]
+  }
+]
+```
+
+### 2. Complete Articles (scraped_data.csv)
 
 ```csv
-url,title,descripcion,categories,page_content
-https://www.freshproduce.com/...,Article Title,Brief description,[Category list],Complete article content...
+categories,descripcion,page_content,title,url
+"[""Food Safety"", ""Technology""]",Brief description,Complete article content...,Article Title,https://www.freshproduce.com/...
 ```
+
+**Columns:**
+- `categories`: Article categories as array
+- `descripcion`: Brief article description
+- `page_content`: Full article content
+- `title`: Article title
+- `url`: Article URL
+
+### 3. LLM Analysis Results (analysis_summary.csv)
+
+```csv
+Title,URL,Category,Summary,Topics
+Article Title,https://www.freshproduce.com/...,Food Safety,AI-generated summary of the article,Key topics extracted by LLM
+```
+
+**Columns:**
+- `Title`: Article title
+- `URL`: Article URL
+- `Category`: Primary category
+- `Summary`: AI-generated article summary
+- `Topics`: Key topics identified by LLM
 
 ## 📝 Notes
 
 - The `articles` spider automatically filters URLs containing `pdf-viewer?contentId=` to avoid processing PDF documents
-- Data is stored in two formats: JSON (raw data) and CSV (processed data)
+- Data flows through three stages: raw JSON → complete CSV → analyzed CSV
 - The project uses automatic pagination to retrieve all available results
+- LLM analysis provides summaries and topic extraction for better content understanding
 
 ---
 
